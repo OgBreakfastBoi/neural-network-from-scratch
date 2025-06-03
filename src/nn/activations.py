@@ -1,22 +1,70 @@
-from collections.abc import Callable
-
 import numpy as np
 
 
-def linear(x: np.ndarray) -> np.ndarray:
-    return x
+class Activation:
+    @staticmethod
+    def call(x: np.ndarray) -> np.ndarray:
+        return x
+
+    @staticmethod
+    def deriv(x: np.ndarray) -> np.ndarray:
+        return x
 
 
-def relu(x: np.ndarray) -> np.ndarray:
-    return np.maximum(0, x)
+def linear(): return Linear
 
 
-def sigmoid(x: np.ndarray) -> np.ndarray:
-    return 1 / (1 + np.exp(-x))
+class Linear(Activation):
+    @staticmethod
+    def call(x: np.ndarray) -> np.ndarray:
+        return x
+
+    @staticmethod
+    def deriv(x: np.ndarray) -> np.ndarray:
+        return np.ones(len(x))
 
 
-def softmax(x: np.ndarray) -> np.ndarray:
-    return np.exp(x) / np.sum(np.exp(x))
+def relu(): return ReLU
+
+
+class ReLU(Activation):
+    @staticmethod
+    def call(x: np.ndarray) -> np.ndarray:
+        return np.maximum(0, x)
+
+    @staticmethod
+    def deriv(x: np.ndarray) -> np.ndarray:
+        non_zero_indices = np.nonzero(x)
+        x[non_zero_indices] = 1
+        return x
+
+
+def sigmoid(): return Sigmoid
+
+
+class Sigmoid(Activation):
+    @staticmethod
+    def call(x: np.ndarray) -> np.ndarray:
+        return 1 / (1 + np.exp(-x))
+
+    @staticmethod
+    def deriv(x: np.ndarray) -> np.ndarray:
+        return Sigmoid.call(x) * (1 - Sigmoid.call(x))
+
+
+def softmax(): return Softmax
+
+
+class Softmax(Activation):
+    @staticmethod
+    def call(x: np.ndarray) -> np.ndarray:
+        exp_x = np.exp(x - x.max())
+        return exp_x / np.sum(exp_x)
+
+    @staticmethod
+    def deriv(x: np.ndarray) -> np.ndarray:
+        s = Softmax.call(x).reshape(-1, 1)
+        return np.diagflat(s) - np.dot(s, s.T)
 
 
 ALL_OBJECTS = [
@@ -28,9 +76,10 @@ ALL_OBJECTS = [
 ALL_OBJECTS_DICT = {fn.__name__: fn for fn in ALL_OBJECTS}
 
 
-def get(identifier: str | Callable[[np.ndarray], np.ndarray] | None) -> Callable[[np.ndarray], np.ndarray]:
+def get(identifier: str | None) -> type[Activation]:
     """
-    Retrieve activation function via an identifier.
+    Retrieve activation function via an identifier. If identifier is
+    ``None`` then return a linear activation where ``f(x)=x``
 
     Currently only supports:
       - relu
@@ -39,9 +88,7 @@ def get(identifier: str | Callable[[np.ndarray], np.ndarray] | None) -> Callable
     """
 
     if identifier is None:
-        return linear
-    elif callable(identifier):
-        return identifier
+        return linear()
     elif isinstance(identifier, str):
-        return ALL_OBJECTS_DICT[identifier]
+        return ALL_OBJECTS_DICT[identifier]()
     raise ValueError(f"Unable to resolve an activation via provided identifier '{identifier}'.")
