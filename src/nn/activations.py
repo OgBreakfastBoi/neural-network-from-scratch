@@ -91,4 +91,4 @@ def get(identifier: str | None) -> type[Activation]:
         return linear()
     elif isinstance(identifier, str):
         return ALL_OBJECTS_DICT[identifier]()
-    raise ValueError(f"Unable to resolve an activation via provided identifier '{identifier}'.")
+    raise ValueError(f"Activation '{identifier}' is currently unsupported or has been mistyped")
