@@ -20,4 +20,4 @@ class Dense:
         """
 
         x = np.sum(x * self.weights, axis=1) + self.biases
-        return self.activation.call(x)
+        return self.activation(x)
