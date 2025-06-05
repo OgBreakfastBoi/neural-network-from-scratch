@@ -27,7 +27,7 @@ class NeuralNetwork:
 
         self._config['optimizer'] = optimizer
         self._config['loss'] = loss
-        self._config['activations'] = [fn.activation.__name__ for fn in self.layers]
+        self._config['activations'] = [fn.activation.__class__.__name__.lower() for fn in self.layers]
 
         prev_layer_size = self.input_size
 
