@@ -44,7 +44,7 @@ class NeuralNetwork:
 
         raise NotImplementedError
 
-    def run(self, x: np.ndarray, y: np.ndarray = None, list_misclassifications = False) -> list | None:
+    def run(self, x: np.ndarray, y: np.ndarray = None, list_misclassifications = False) -> dict[str, np.ndarray] | None:
         """
         Runs the network on the provided data and assumes the data is normalized.
         If labels are provided for the data then a percentage accuracy report
@@ -63,7 +63,7 @@ class NeuralNetwork:
         if y.ndim != 1:
             raise ValueError(f"Labels NumPy array is not flat. It has shape {y.shape}")
 
-        if x.ndim != 2: x = x.reshape((x.shape[0]), -1)  # flattens the dataset if not already flattened
+        if x.ndim > 2: x = x.reshape((x.shape[0]), -1)  # flattens the dataset if not already flattened
 
         predictions = []  # will only be populated if `y` is provided
 
@@ -93,15 +93,11 @@ class NeuralNetwork:
 
             # misclassifications
             if list_misclassifications:
-                misclassifications = []
-                for i in misclassification_indices:
-                    info_dict = {
-                        "label": y[i],
-                        "prediction": predictions[i],
-                        "data_point": x[i]
-                    }
-                    misclassifications.append(info_dict)
-                return misclassifications
+                return {
+                    "labels": y[misclassification_indices],
+                    "predictions": predictions[misclassification_indices],
+                    "data_points": x[misclassification_indices]
+                }
             return None
         return None
 
