@@ -32,8 +32,7 @@ class NeuralNetwork:
         prev_layer_size = self.input_size
 
         for i in range(len(self.layers)):
-            self.layers[i].weights = utils.initialize_weights(self.layers[i].nodes, prev_layer_size)
-            self.layers[i].biases = utils.initialize_biases(self.layers[i].nodes)
+            self.layers[i].build(prev_layer_size)
             prev_layer_size = self.layers[i].nodes
 
         self._compiled = True
