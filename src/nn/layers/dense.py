@@ -1,6 +1,10 @@
 import numpy as np
 
 import src.nn.activations as activations
+from src.nn.utils import (
+    initialize_biases,
+    initialize_weights,
+)
 
 
 class Dense:
@@ -9,6 +13,10 @@ class Dense:
         self.activation = activations.get(activation)
         self.weights = np.array([])
         self.biases = np.array([])
+
+    def build(self, inputs_per_node: int):
+        self.weights = initialize_weights(self.nodes, inputs_per_node)
+        self.biases = initialize_biases(self.nodes)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
