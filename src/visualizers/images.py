@@ -32,14 +32,12 @@ def visualize_images(
     n_pages = int(np.ceil(N / per_page))
     current_page = 0
 
-    # Create a single figure + grid of axes once:
     fig, axes = plt.subplots(
         rows,
         columns,
         figsize=win_size,
         facecolor=background_color
     )
-    # Flatten axes to a 1D array so we can index 0 ... (rows*columns-1)
     axes = axes.ravel()
 
     # Navigation buttons
