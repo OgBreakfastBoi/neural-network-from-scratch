@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.nn.activations.base import ActivationFunction
+from src.nn.activations.activation import ActivationFunction
 
 
 class Linear(ActivationFunction):

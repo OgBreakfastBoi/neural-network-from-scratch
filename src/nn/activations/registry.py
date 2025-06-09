@@ -4,7 +4,7 @@ from src.nn.activations.activations import (
     Sigmoid,
     Softmax,
 )
-from src.nn.activations.base import ActivationFunction
+from src.nn.activations.activation import ActivationFunction
 
 linear = Linear()
 relu = ReLU()
