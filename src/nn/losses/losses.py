@@ -15,12 +15,6 @@ class MeanSquaredError(LossFunction):
         super().__init__(reduction, name)
 
     def call(self, true: np.ndarray, predicted: np.ndarray) -> np.ndarray:
-        if true.shape != predicted.shape:
-            raise ValueError(
-                f"True and predicted have different shapes. Received shapes "
-                f"{true.shape} and {predicted.shape} respectively"
-            )
-
         return (true - predicted) ** 2
 
 
