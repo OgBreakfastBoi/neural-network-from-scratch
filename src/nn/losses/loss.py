@@ -28,10 +28,7 @@ class LossFunction(ABC):
                 f"lengths {true.shape[0]} and {predicted.shape[0]} respectively"
             )
 
-        true = true.astype(np.float64)
-        predicted = predicted.astype(np.float64)
         losses = self.call(true, predicted)
-
         return reduce_losses(losses, self.reduction)
 
     @abstractmethod
@@ -46,6 +43,10 @@ class LossFunction(ABC):
         Returns:
             An array of losses for each sample.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def deriv(self, true: np.ndarray, predicted: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
 
