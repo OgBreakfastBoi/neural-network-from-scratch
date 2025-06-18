@@ -3,7 +3,7 @@ from abc import (
     abstractmethod,
 )
 
-from numpy import ndarray
+import numpy as np
 
 
 class ActivationFunction(ABC):
@@ -16,28 +16,31 @@ class ActivationFunction(ABC):
       - ``static_call(x)``: Static version of the activation.
 
     Methods:
-        __call__(*args, **kwargs): Enables instances to be called like functions, forwarding to `call`.
+        __call__(x): Enables instances to be called like functions, forwarding to `call`.
         __repr__(): Returns a string representation of the activation function.
         call(x): Abstract method to compute the forward pass.
         deriv(x): Abstract method to compute the derivative of the activation function.
         static_call(x): Abstract static method for applying the activation without instantiation.
     """
 
-    def __call__(self, *args: ndarray, **kwargs):
-        return self.call(*args, **kwargs)
+    def __init__(self, name: str):
+        self.name = name
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return self.call(x)
 
     def __repr__(self):
-        return f"<ActivationFunction: {self.__class__.__name__}>"
+        return f"<ActivationFunction: {self.name}>"
 
     @abstractmethod
-    def call(self, x: ndarray) -> ndarray:
+    def call(self, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     @abstractmethod
-    def deriv(self, x: ndarray) -> ndarray:
+    def deriv(self, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     @staticmethod
     @abstractmethod
-    def static_call(x: ndarray) -> ndarray:
+    def static_call(x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
