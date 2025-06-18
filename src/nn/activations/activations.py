@@ -8,6 +8,9 @@ class Linear(ActivationFunction):
     Linear activation function: f(x) = x
     """
 
+    def __init__(self, name = "linear"):
+        super().__init__(name)
+
     def call(self, x: np.ndarray) -> np.ndarray:
         """
         Returns the input unchanged.
@@ -32,6 +35,9 @@ class ReLU(ActivationFunction):
     """
     Rectified Linear Unit (ReLu) activation function: f(x) = max(0, x)
     """
+
+    def __init__(self, name = "relu"):
+        super().__init__(name)
 
     def call(self, x: np.ndarray) -> np.ndarray:
         """
@@ -58,17 +64,24 @@ class Sigmoid(ActivationFunction):
     Sigmoid activation function: f(x) = 1 / (1 + e^(-x))
     """
 
+    def __init__(self, cache_outputs = True, name = "sigmoid"):
+        super().__init__(name)
+        self.cache_outputs = cache_outputs
+        self.output = None
+
     def call(self, x: np.ndarray) -> np.ndarray:
         """
         Applies the sigmoid function to input.
         """
-        return self.static_call(x)
+        result = self.static_call(x)
+        if self.cache_outputs: self.output = result
+        return result
 
     def deriv(self, x: np.ndarray) -> np.ndarray:
         """
         Derivative of sigmoid: f(x) * (1 - f(x))
         """
-        sig = self.static_call(x)
+        sig = self.static_call(x) if self.output is None else self.output
         return sig * (1 - sig)
 
     @staticmethod
@@ -84,31 +97,56 @@ class Softmax(ActivationFunction):
     Softmax activation function for converting a vector into a probability distribution.
     """
 
+    def __init__(self, cache_outputs = True, name = "softmax"):
+        super().__init__(name)
+        self.cache_outputs = cache_outputs
+        self.output = None
+
     def call(self, x: np.ndarray) -> np.ndarray:
         """
         Applies the softmax function to input.
         """
-        return self.static_call(x)
+        result = self.static_call(x)
+        if self.cache_outputs:
+            self.output = result
+        return result
 
     def deriv(self, x: np.ndarray) -> np.ndarray:
         """
-        Computes the Jacobian matrix of the softmax function for a 1D input.
+        Computes the Jacobian matrix of the softmax function.
 
-        Note:
-            Only supports 1D input. For 2D input, this would need to be extended
-            with batched processing.
+        For 1D input: returns (C, C) Jacobian.
+        For 2D input: returns (B, C, C) Jacobians for each sample in batch.
         """
 
-        if x.ndim != 1:
-            raise NotImplementedError("Softmax derivative supports only 1D input")
+        if x.ndim == 1:
+            s = self.static_call(x) if self.output is None else self.output
+            s = s.reshape(-1, 1)
+            return np.diagflat(s) - s @ s.T
+        elif x.ndim == 2:
+            s = self.static_call(x) if self.output is None else self.output
+            batch_size, num_classes = s.shape
+            jacobians = np.empty((batch_size, num_classes, num_classes))
 
-        s = self.static_call(x).reshape(-1, 1)
-        return np.diagflat(s) - np.dot(s, s.T)
+            for i in range(batch_size):
+                s_i = s[i].reshape(-1, 1)
+                jacobians[i] = np.diagflat(s_i) - s_i @ s_i.T
+
+            return jacobians
+        raise ValueError(
+            f"Softmax derivative only supports 1D or 2D input. Got shape {x.shape}."
+        )
 
     @staticmethod
     def static_call(x: np.ndarray) -> np.ndarray:
         """
         Static version of softmax that is numerically stable.
         """
-        exp_x = np.exp(x - x.max())
-        return exp_x / np.sum(exp_x)
+
+        if x.ndim == 1:
+            exp_x = np.exp(x - x.max())
+            return exp_x / np.sum(exp_x)
+        elif x.ndim == 2:
+            exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+            return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+        raise ValueError(f"Softmax only supports 1D or 2D input. Got shape {x.shape}.")
