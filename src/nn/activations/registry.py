@@ -1,23 +1,18 @@
+from src.nn.activations.activation import ActivationFunction
 from src.nn.activations.activations import (
     Linear,
     ReLU,
     Sigmoid,
     Softmax,
 )
-from src.nn.activations.activation import ActivationFunction
 
-linear = Linear()
-relu = ReLU()
-sigmoid = Sigmoid()
-softmax = Softmax()
-
-ALL_OBJECTS = [
-    linear,
-    relu,
-    sigmoid,
-    softmax,
+ACTIVATIONS = [
+    Linear,
+    ReLU,
+    Sigmoid,
+    Softmax
 ]
-ALL_OBJECTS_DICT = {fn.__class__.__name__.lower(): fn for fn in ALL_OBJECTS}
+ACTIVATIONS_DICT = {fn().name: fn for fn in ACTIVATIONS}
 
 
 def get(identifier: str | None) -> ActivationFunction:
@@ -43,12 +38,16 @@ def get(identifier: str | None) -> ActivationFunction:
     """
 
     if identifier is None:
-        return linear
+        return Linear()
     elif isinstance(identifier, str):
         key = identifier.lower()
-        if key in ALL_OBJECTS_DICT:
-            return ALL_OBJECTS_DICT[key]
+        if key in ACTIVATIONS_DICT:
+            return ACTIVATIONS_DICT[key]()
         raise ValueError(
-            f"Unknown activation '{identifier}'. Supported: {list(ALL_OBJECTS_DICT.keys())}"
+            f"Unknown activation '{identifier}'. "
+            f"Supported: {list(ACTIVATIONS_DICT.keys())}"
         )
-    raise TypeError(f"ActivationFunction identifier must be a string or None, not {type(identifier)}")
+    raise TypeError(
+        f"ActivationFunction identifier must be a string or None, "
+        f"not {type(identifier)}"
+    )
