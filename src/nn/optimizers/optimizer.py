@@ -7,7 +7,7 @@ import numpy as np
 
 
 class Optimizer(ABC):
-    def __init__(self, lr: float, name: str, ):
+    def __init__(self, lr: float, name: str):
         self.lr = lr
         self.name = name
 
