@@ -24,8 +24,8 @@ class Flatten(Layer, InputLayer):
 
         if x.ndim == 1 and x.shape[0] != output_shape:
             raise ValueError(
-                f"`x` input shape is invalid for {self.__repr__()}. Expected shape "
-                f"({output_shape},), got {x.shape} instead."
+                f"`x` input shape is invalid for {self.__repr__()}. Expected "
+                f"shape ({output_shape},), got {x.shape} instead."
             )
 
         if x.ndim == 2 and x.shape[1] != output_shape:
@@ -33,24 +33,44 @@ class Flatten(Layer, InputLayer):
             x = x.flatten()
             if x.shape[0] != output_shape:
                 raise ValueError(
-                    f"`x` input shape is invalid for {self.__repr__()}. Expected shape "
-                    f"{(x.shape[0], output_shape)}, got {x.shape} instead."
+                    f"`x` input shape is invalid for {self.__repr__()}. "
+                    f"Expected shape {(x.shape[0], output_shape)}, "
+                    f"got {x.shape} instead."
                 )
 
         if x.ndim > 2:
             x = x.reshape(x.shape[0], -1)
             if x.shape[1] != output_shape:
                 raise ValueError(
-                    f"`x` input shape is invalid for {self.__repr__()}. Expected shape "
-                    f"{(x.shape[0], output_shape)}, got {x.shape} instead."
+                    f"`x` input shape is invalid for {self.__repr__()}. "
+                    f"Expected shape {(x.shape[0], output_shape)}, "
+                    f"got {x.shape} instead."
                 )
 
         return x
 
-    def backward(self, grad_input: np.ndarray, optimizer: Optimizer) -> np.ndarray:
+    def backward(
+        self,
+        grad_input: np.ndarray,
+        optimizer: Optimizer,
+    ) -> np.ndarray:
         if not self._built:
             raise LayerNotBuiltError()
         return np.array([])
 
     def output_shape(self) -> tuple[int]:
         return (math.prod(self.input_shape),)
+
+    def get_config(self) -> dict[str, str]:
+        if not self._built:
+            raise LayerNotBuiltError(
+                "Layer must be built before a config can be generated."
+            )
+
+        config = {
+            "name": self.name,
+            "index": self._idx,
+            "built": self._built,
+            "input_shape": self.input_shape
+        }
+        return config
