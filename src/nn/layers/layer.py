@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Any
 
 import numpy as np
 
@@ -38,11 +39,19 @@ class Layer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def backward(self, grad_input: np.ndarray, optimizer: Optimizer) -> np.ndarray:
+    def backward(
+        self,
+        grad_input: np.ndarray,
+        optimizer: Optimizer,
+    ) -> np.ndarray:
         raise NotImplementedError
 
     @abstractmethod
     def output_shape(self) -> tuple[int]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_config(self) -> dict[str, Any]:
         raise NotImplementedError
 
     @property
