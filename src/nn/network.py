@@ -1,3 +1,6 @@
+import io
+import json
+import zipfile
 from time import perf_counter
 from typing import Any
 
@@ -182,8 +185,30 @@ class NeuralNetwork:
 
         return predictions
 
-    def save(self):
-        raise NotImplementedError
+    def save(self, path: str):
+        if not self._compiled:
+            raise ModelNotCompiledError(
+                "The model must be compiled before it can be saved."
+            )
+
+        parms_dict = {}
+        config = self.get_config()
+        for i in range(len(config['layers'])):
+            layer = config['layers'][i]
+            if 'weights' in layer.keys():
+                parms_dict[f"weights_{layer['index']}"] = layer['weights']
+                # Remove param from model config to allow for json encoding
+                config['layers'][i]['weights'] = "..."
+            if 'biases' in layer.keys():
+                parms_dict[f"biases_{layer['index']}"] = layer['biases']
+                # Remove param from model config to allow for json encoding
+                config['layers'][i]['biases'] = "..."
+
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("model.json", json.dumps(config))
+            params_buffer = io.BytesIO()
+            np.savez_compressed(params_buffer, allow_pickle=False, **parms_dict)
+            archive.writestr("params.npz", params_buffer.getvalue())
 
     def load(self):
         raise NotImplementedError
