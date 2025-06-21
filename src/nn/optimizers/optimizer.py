@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Any
 
 import numpy as np
 
@@ -21,4 +22,8 @@ class Optimizer(ABC):
         grad: np.ndarray,
         param_name: str,
     ) -> np.ndarray:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_config(self) -> dict[str, Any]:
         raise NotImplementedError
