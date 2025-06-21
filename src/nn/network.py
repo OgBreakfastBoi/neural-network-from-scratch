@@ -196,9 +196,10 @@ class NeuralNetwork:
 
         config = {
             "name": self.name,
-            "layers": self._layers,
-            "optimizer": self._optimizer,
-            "loss_function": self._loss_fn
+            "last_activation": self._last_activation,
+            "layers": [layer.get_config() for layer in self._layers],
+            "optimizer": self._optimizer.get_config(),
+            "loss_function": self._loss_fn.get_config()
         }
         return config
 
