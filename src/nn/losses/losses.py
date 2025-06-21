@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 
 from src.nn.losses.loss import LossFunction
@@ -20,6 +22,13 @@ class MeanSquaredError(LossFunction):
     def deriv(self, true: np.ndarray, predicted: np.ndarray) -> np.ndarray:
         return predicted - true
 
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "reduction": self.reduction
+        }
+        return config
+
 
 class CategoricalCrossEntropy(LossFunction):
     """
@@ -33,9 +42,14 @@ class CategoricalCrossEntropy(LossFunction):
     labels (`true.ndim == 1`).
     """
 
-    def __init__(self, epsilon = 1e-15, reduction = "mean", name = "categorical_cross_entropy"):
+    def __init__(
+        self,
+        epsilon = 1e-15,
+        reduction = "mean",
+        name = "categorical_cross_entropy",
+    ):
         super().__init__(reduction, name)
-        self.epsilon = epsilon  # Very small number to ensure numerical stability
+        self.epsilon = epsilon  # Very small number for numerical stability
 
     def call(self, true: np.ndarray, predicted: np.ndarray) -> np.ndarray:
         predicted = np.clip(predicted, self.epsilon, 1.0 - self.epsilon)
@@ -58,3 +72,11 @@ class CategoricalCrossEntropy(LossFunction):
         elif true.ndim == 2:
             return predicted - true
         raise ValueError(f"Unsupported label ndim: {true.ndim}")
+
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "reduction": self.reduction,
+            "epsilon": self.epsilon
+        }
+        return config
