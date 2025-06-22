@@ -1,4 +1,5 @@
 import math
+from typing import Any
 
 import numpy as np
 
@@ -70,7 +71,6 @@ class Flatten(Layer, InputLayer):
         config = {
             "name": self.name,
             "index": self._idx,
-            "built": self._built,
             "input_shape": self.input_shape
         }
         return config

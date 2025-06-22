@@ -82,7 +82,6 @@ class Dense(Layer):
         config = {
             "name": self.name,
             "index": self._idx,
-            "built": self._built,
             "units": self.units,
             "activation": self.activation.get_config(),
             "weights": self._weights,
