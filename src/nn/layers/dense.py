@@ -88,3 +88,17 @@ class Dense(Layer):
             "biases": self._biases,
         }
         return config
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "Dense":
+        layer = cls(
+            units=config['units'],
+            activation=config['activation']['name'],
+            name=config['name']
+        )
+        layer._idx = config['index']
+        layer.activation.__init__(**config['activation'])
+        layer._weights = config['weights']
+        layer._biases = config['biases']
+        layer._built = True
+        return layer
