@@ -74,3 +74,10 @@ class Flatten(Layer, InputLayer):
             "input_shape": self.input_shape
         }
         return config
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "Flatten":
+        layer = cls(input_shape=config['input_shape'], name=config['name'])
+        layer._idx = config['index']
+        layer._built = True
+        return layer
