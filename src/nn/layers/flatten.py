@@ -61,7 +61,7 @@ class Flatten(Layer, InputLayer):
     def output_shape(self) -> tuple[int]:
         return (math.prod(self.input_shape),)
 
-    def get_config(self) -> dict[str, str]:
+    def get_config(self) -> dict[str, Any]:
         if not self._built:
             raise LayerNotBuiltError(
                 "Layer must be built before a config can be generated."
