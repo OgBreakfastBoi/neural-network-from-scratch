@@ -54,6 +54,11 @@ class Layer(ABC):
     def get_config(self) -> dict[str, Any]:
         raise NotImplementedError
 
+    @classmethod
+    @abstractmethod
+    def from_config(cls) -> "Layer":
+        raise NotImplementedError
+
     @property
     def built(self):
         return self._built
