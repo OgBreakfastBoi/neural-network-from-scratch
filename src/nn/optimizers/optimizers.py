@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 
 from src.nn.optimizers.optimizer import Optimizer
@@ -40,6 +42,16 @@ class Adam(Optimizer):
 
         return param - self.lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
 
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "lr": self.lr,
+            "beta1": self.beta1,
+            "beta2": self.beta2,
+            "epsilon": self.epsilon
+        }
+        return config
+
 
 class StochasticGradientDescent(Optimizer):
     def __init__(
@@ -56,3 +68,10 @@ class StochasticGradientDescent(Optimizer):
         param_name: str,
     ) -> np.ndarray:
         return param - self.lr * grad
+
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "lr": self.lr
+        }
+        return config

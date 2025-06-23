@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Any
 
 import numpy as np
 
@@ -44,3 +45,9 @@ class ActivationFunction(ABC):
     @abstractmethod
     def static_call(x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
+
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name
+        }
+        return config

@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 
 from src.nn.activations.activation import ActivationFunction
@@ -91,10 +93,18 @@ class Sigmoid(ActivationFunction):
         """
         return 1 / (1 + np.exp(-x))
 
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "cache_outputs": self.cache_outputs
+        }
+        return config
+
 
 class Softmax(ActivationFunction):
     """
-    Softmax activation function for converting a vector into a probability distribution.
+    Softmax activation function for converting a vector into a probability
+    distribution.
     """
 
     def __init__(self, cache_outputs = True, name = "softmax"):
@@ -134,7 +144,8 @@ class Softmax(ActivationFunction):
 
             return jacobians
         raise ValueError(
-            f"Softmax derivative only supports 1D or 2D input. Got shape {x.shape}."
+            f"Softmax derivative only supports 1D or 2D input. "
+            f"Got shape {x.shape}."
         )
 
     @staticmethod
@@ -149,4 +160,13 @@ class Softmax(ActivationFunction):
         elif x.ndim == 2:
             exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
             return exp_x / np.sum(exp_x, axis=1, keepdims=True)
-        raise ValueError(f"Softmax only supports 1D or 2D input. Got shape {x.shape}.")
+        raise ValueError(
+            f"Softmax only supports 1D or 2D input. Got shape {x.shape}."
+        )
+
+    def get_config(self) -> dict[str, Any]:
+        config = {
+            "name": self.name,
+            "cache_outputs": self.cache_outputs
+        }
+        return config

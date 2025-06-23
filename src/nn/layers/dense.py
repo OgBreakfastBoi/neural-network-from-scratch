@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 
 from src.nn import activations
@@ -41,7 +43,11 @@ class Dense(Layer):
         self.prev_output = self.activation(x)
         return self.prev_output
 
-    def backward(self, grad_input: np.ndarray, optimizer: Optimizer) -> np.ndarray:
+    def backward(
+        self,
+        grad_input: np.ndarray,
+        optimizer: Optimizer,
+    ) -> np.ndarray:
         if not self._built:
             raise LayerNotBuiltError()
 
@@ -66,3 +72,33 @@ class Dense(Layer):
 
     def output_shape(self) -> tuple[int]:
         return (self.units,)
+
+    def get_config(self) -> dict[str, Any]:
+        if not self._built:
+            raise LayerNotBuiltError(
+                "Layer must be built before a config can be generated."
+            )
+
+        config = {
+            "name": self.name,
+            "index": self._idx,
+            "units": self.units,
+            "activation": self.activation.get_config(),
+            "weights": self._weights,
+            "biases": self._biases,
+        }
+        return config
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "Dense":
+        layer = cls(
+            units=config['units'],
+            activation=config['activation']['name'],
+            name=config['name']
+        )
+        layer._idx = config['index']
+        layer.activation.__init__(**config['activation'])
+        layer._weights = config['weights']
+        layer._biases = config['biases']
+        layer._built = True
+        return layer

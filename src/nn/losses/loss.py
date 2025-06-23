@@ -2,6 +2,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import Any
 
 import numpy as np
 
@@ -21,7 +22,11 @@ class LossFunction(ABC):
     def __repr__(self):
         return f"<LossFunction: {self.name}, reduction={self.reduction}>"
 
-    def __call__(self, true: np.ndarray, predicted: np.ndarray) -> float | np.ndarray:
+    def __call__(
+        self,
+        true: np.ndarray,
+        predicted: np.ndarray,
+    ) -> float | np.ndarray:
         if true.shape[0] == 0 or predicted.shape[0] == 0:
             raise ValueError(
                 f"Zero-size inputs for either true or predicted. Received "
@@ -49,6 +54,10 @@ class LossFunction(ABC):
     def deriv(self, true: np.ndarray, predicted: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
+    @abstractmethod
+    def get_config(self) -> dict[str, Any]:
+        raise NotImplementedError
+
 
 def check_reduction(reduction: str | None):
     """
@@ -62,13 +71,17 @@ def check_reduction(reduction: str | None):
         None
     ]
     if reduction not in supported:
-        raise ValueError(f"Unknown reduction '{reduction}'. Supported: {supported}")
+        raise ValueError(
+            f"Unknown reduction '{reduction}'. Supported: {supported}"
+        )
     if reduction == "none":
         return None
     return reduction
 
 
-def reduce_losses(values: np.ndarray, reduction: str | None) -> float | np.ndarray:
+def reduce_losses(
+    values: np.ndarray, reduction: str | None,
+) -> float | np.ndarray:
     """
     Applies a reduction method to an array of loss values.
 

@@ -1,9 +1,13 @@
+import io
+import json
+import zipfile
 from time import perf_counter
 from typing import Any
 
 import numpy as np
 
 from src.nn import (
+    layers,
     losses,
     optimizers,
 )
@@ -101,7 +105,10 @@ class NeuralNetwork:
             loss = 0
             for start in range(0, x.shape[0], batch_size):
                 end = start + batch_size
-                loss += self._train_batch(x_shuffled[start:end], y_shuffled[start:end])
+                loss += self._train_batch(
+                    x_shuffled[start:end],
+                    y_shuffled[start:end]
+                )
 
             end_time = perf_counter()
             time = end_time - start_time
@@ -117,8 +124,11 @@ class NeuralNetwork:
                     labels = np.argmax(labels, axis=1)
 
                 misclassification_indices = np.nonzero(labels - pred)[0]
-                accuracy = (x.shape[0] - misclassification_indices.shape[0]) / x.shape[0]
-                avg_loss = loss / (x.shape[0] / batch_size)
+                x_len = x.shape[0]
+                accuracy = (
+                    (x_len - misclassification_indices.shape[0]) / x_len
+                )
+                avg_loss = loss / (x_len / batch_size)
                 print(
                     f"Epoch {epoch}/{epochs}, Accuracy: {accuracy:.6f}, "
                     f"Loss: {avg_loss:.6f}, Duration: {time:.6f} seconds"
@@ -154,7 +164,9 @@ class NeuralNetwork:
             y = np.argmax(y, axis=1)
 
         misclassification_indices = np.nonzero(y - pred)[0]
-        accuracy = (x.shape[0] - misclassification_indices.shape[0]) / x.shape[0]
+        accuracy = (
+            (x.shape[0] - misclassification_indices.shape[0]) / x.shape[0]
+        )
         misclassifications_dict = {
             "dataset": x[misclassification_indices],
             "labels": y[misclassification_indices],
@@ -175,18 +187,71 @@ class NeuralNetwork:
             if self._last_activation == "softmax":
                 argmax = np.argmax(pred, axis=-1)
                 predictions.append(argmax)
-                print(f"Prediction({i + 1}/{x.shape[0]}): {argmax}. Confidence: {pred[argmax]}")
+                print(
+                    f"Prediction({i + 1}/{x.shape[0]}): {argmax}. "
+                    f"Confidence: {pred[argmax]}"
+                )
             else:
                 predictions.append(pred)
                 print(f"Prediction({i + 1}/{x.shape[0]}): {pred}")
 
         return predictions
 
-    def save(self):
-        raise NotImplementedError
+    def save(self, path: str):
+        if not self._compiled:
+            raise ModelNotCompiledError(
+                "The model must be compiled before it can be saved."
+            )
 
-    def load(self):
-        raise NotImplementedError
+        parms_dict = {}
+        config = self.get_config()
+        for i in range(len(config['layers'])):
+            layer = config['layers'][i]
+            if 'weights' in layer.keys():
+                parms_dict[f"weights_{layer['index']}"] = layer['weights']
+                # Remove param from model config to allow for json encoding
+                config['layers'][i]['weights'] = "..."
+            if 'biases' in layer.keys():
+                parms_dict[f"biases_{layer['index']}"] = layer['biases']
+                # Remove param from model config to allow for json encoding
+                config['layers'][i]['biases'] = "..."
+
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("model.json", json.dumps(config))
+            params_buffer = io.BytesIO()
+            np.savez_compressed(params_buffer, allow_pickle=False, **parms_dict)
+            archive.writestr("params.npz", params_buffer.getvalue())
+
+    @classmethod
+    def load(cls, path: str) -> "NeuralNetwork":
+        with zipfile.ZipFile(path, "r") as archive:
+            config = json.loads(archive.read("model.json"))
+            params = np.load(io.BytesIO(archive.read("params.npz")))
+
+        model = cls(config['name'])
+        model._last_activation = config['last_activation']
+
+        for layer_config in config['layers']:
+            # Reassign params to each layer config for deserialization
+            if 'weights' in layer_config.keys():
+                layer_config['weights'] = (
+                    params[f"weights_{layer_config['index']}"]
+                )
+            if 'biases' in layer_config.keys():
+                layer_config['biases'] = (
+                    params[f"biases_{layer_config['index']}"]
+                )
+
+            model.add(layers.from_config(layer_config))
+
+        model._optimizer = optimizers.get(config['optimizer']['name'])
+        model._optimizer.__init__(**config['optimizer'])
+
+        model._loss_fn = losses.get(config['loss_function']['name'])
+        model._loss_fn.__init__(**config['loss_function'])
+
+        model._compiled = True
+        return model
 
     def get_config(self) -> dict[str, Any]:
         if not self._compiled:
@@ -196,9 +261,10 @@ class NeuralNetwork:
 
         config = {
             "name": self.name,
-            "layers": self._layers,
-            "optimizer": self._optimizer,
-            "loss_function": self._loss_fn
+            "last_activation": self._last_activation,
+            "layers": [layer.get_config() for layer in self._layers],
+            "optimizer": self._optimizer.get_config(),
+            "loss_function": self._loss_fn.get_config()
         }
         return config
 
