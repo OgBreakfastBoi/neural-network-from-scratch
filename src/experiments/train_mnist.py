@@ -49,7 +49,7 @@ network.add(nn.layers.Dense(128, 'relu'))
 network.add(nn.layers.Dense(10, 'softmax'))
 network.compile(('adam', 0.0005), 'categorical_cross_entropy')
 
-network.train(normalize(x_train), y_train, 32, 10)
+network.train(x_train, y_train, 32, 10)
 
 loss, accuracy, misclassifications = network.evaluate(x_test, y_test)
 print(f"\nEvaluation (x_test, y_test):\nLoss: {loss}, Accuracy: {accuracy}")
